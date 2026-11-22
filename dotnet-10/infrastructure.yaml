@@ -1,0 +1,93 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: "${APP_NAME:-default}-mssql"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-D3faultP@ssw0rd}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "${MSSQL_FORWARD_PORT:-1433}:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - app-network
+
+  adminer:
+    image: adminer:5.4.2
+    container_name: "${APP_NAME:-default}-adminer"
+    ports:
+      - "${ADMINER_FORWARD_PORT:-8080}:8080"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:8.8.0-alpine
+    container_name: "${APP_NAME:-default}-redis"
+    ports:
+      - "${REDIS_FORWARD_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+  
+  redis-insight:
+    image: redis/redisinsight:3.6
+    container_name: "${APP_NAME:-default}-redis-insight"
+    ports:
+      - "${REDIS_INSIGHT_FORWARD_PORT:-5540}:5540"
+    volumes:
+      - redis-insight-data:/db
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:4.3.2-management-alpine
+    container_name: "${APP_NAME:-default}-rabbitmq"
+    ports:
+      - "${RABBITMQ_FORWARD_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_FORWARD_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:18.4-alpine
+    container_name: "${APP_NAME:-default}-postgres"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-D3faultP@ssw0rd}"
+      POSTGRES_DB: "${POSTGRES_DB:-defaultdb}"
+    ports:
+      - "${POSTGRES_FORWARD_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - app-network
+
+  pgadmin:
+    image: dpage/pgadmin4:9.16
+    container_name: "${APP_NAME:-default}-pgadmin"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL:-pgadmin@example.com}"
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD:-D3faultP@ssw0rd}"
+    ports:
+      - "${PGADMIN_FORWARD_PORT:-5050}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:
+  mssql-data:
+  redis-data:
+  redis-insight-data:
+  rabbitmq-data:
+  pgadmin-data:
+
+networks:
+  app-network:
+    name: "${APP_NAME:-default}-network"
+    driver: bridge

@@ -1,0 +1,26 @@
+include:
+  - infrastructure.yaml
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: "${APP_NAME:-default}-app"
+    ports:
+      - "${APP_FORWARD_PORT:-5247}:5247"
+    networks:
+      - app-network
+    volumes:
+      - .:/app:cached
+      - nuget-cache:/home/vscode/.nuget/packages
+    restart: unless-stopped
+
+networks:
+  app-network:
+    name: "${APP_NAME:-default}-network"
+    driver: bridge
+
+volumes:
+  nuget-cache:
